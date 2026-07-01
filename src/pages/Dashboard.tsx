@@ -63,15 +63,13 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user) return;
+    let cancelled = false;
     (async () => {
       const { data: m } = await (supabase.from('members') as any)
         .select('id, full_name, email, phone, institution, is_active, branch_id')
         .eq('user_id', user.id).maybeSingle();
-      if (!m) return;
-      const { data: b } = await supabase.from('branches').select('name, zone_id').eq('id', (m as any).branch_id).maybeSingle();
-      const { data: z } = b ? await supabase.from('zones').select('name, conference_id').eq('id', (b as any).zone_id).maybeSingle() : { data: null };
-      const { data: c } = z ? await supabase.from('conferences').select('name, union_id').eq('id', (z as any).conference_id).maybeSingle() : { data: null };
-      const { data: u } = c ? await supabase.from('unions').select('name').eq('id', (c as any).union_id).maybeSingle() : { data: null };
+      if (!m || cancelled) return;
+      // Seed the card immediately with what we have, then enrich with hierarchy names.
       setMyMembership({
         id: (m as any).id,
         full_name: (m as any).full_name,
@@ -79,12 +77,27 @@ export default function Dashboard() {
         phone: (m as any).phone,
         institution: (m as any).institution,
         is_active: (m as any).is_active,
-        branch_name: (b as any)?.name,
-        zone_name: (z as any)?.name,
-        conference_name: (c as any)?.name,
-        union_name: (u as any)?.name,
       });
+      const [bRes, allZ, allC, allU] = await Promise.all([
+        supabase.from('branches').select('name, zone_id').eq('id', (m as any).branch_id).maybeSingle(),
+        supabase.from('zones').select('id, name, conference_id'),
+        supabase.from('conferences').select('id, name, union_id'),
+        supabase.from('unions').select('id, name'),
+      ]);
+      if (cancelled) return;
+      const b: any = bRes.data;
+      const z: any = b ? (allZ.data || []).find((x: any) => x.id === b.zone_id) : null;
+      const c: any = z ? (allC.data || []).find((x: any) => x.id === z.conference_id) : null;
+      const u: any = c ? (allU.data || []).find((x: any) => x.id === c.union_id) : null;
+      setMyMembership(prev => prev ? {
+        ...prev,
+        branch_name: b?.name,
+        zone_name: z?.name,
+        conference_name: c?.name,
+        union_name: u?.name,
+      } : prev);
     })();
+    return () => { cancelled = true; };
   }, [user]);
 
   const currentBg = HERO_BACKGROUNDS.find(b => b.id === bgId) || HERO_BACKGROUNDS[0];
