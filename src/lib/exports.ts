@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import pcmLogo from '@/assets/pcm-logo.png.asset.json';
+
 
 export type ExportRow = Record<string, string | number | null | undefined>;
 
@@ -69,7 +69,7 @@ async function imageToBase64(imageUrl: string): Promise<string> {
  * Replicates the attached SVG template (848x598 viewBox) and scales to A4 portrait/landscape.
  * Returns the Y coordinate at which body content can start.
  */
-function drawTucasaHeader(doc: jsPDF, logoBase64?: string): number {
+function drawTucasaHeader(doc: jsPDF, logoBase64?: string, sdaLogoBase64?: string): number {
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
 
@@ -84,6 +84,19 @@ function drawTucasaHeader(doc: jsPDF, logoBase64?: string): number {
   // Right purple side panel (runs full page height)
   doc.setFillColor(...BRAND_PURPLE);
   doc.rect(pageW - sidePanelW, 0, sidePanelW, pageH, 'F');
+
+  // SDA logo at the top of the right sidebar
+  const sidebarLogoW = 18;
+  const sidebarLogoH = 18;
+  const sidebarLogoX = pageW - sidePanelW + (sidePanelW - sidebarLogoW) / 2;
+  const sidebarLogoY = 5;
+  if (sdaLogoBase64) {
+    try {
+      doc.addImage(sdaLogoBase64, 'PNG', sidebarLogoX, sidebarLogoY, sidebarLogoW, sidebarLogoH);
+    } catch (error) {
+      console.error('Failed to add SDA logo image:', error);
+    }
+  }
 
   // Bottom purple underline of header
   doc.setDrawColor(...BRAND_LINE);
@@ -180,8 +193,9 @@ export async function exportPDF(
 ) {
   if (rows.length === 0) return;
   
-  // Load logo image as base64
-  const logoBase64 = await imageToBase64(pcmLogo.url);
+  // Load logo images as base64 from the public assets
+  const logoBase64 = await imageToBase64('/PCM-logo.png');
+  const sdaLogoBase64 = await imageToBase64('/SDA-logo.png');
   
   const doc = new jsPDF({ orientation, unit: 'mm', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
@@ -193,7 +207,7 @@ export async function exportPDF(
   const generatedAt = new Date().toLocaleString();
 
   // Initial header + title block on first page
-  const headerBottom = drawTucasaHeader(doc, logoBase64);
+  const headerBottom = drawTucasaHeader(doc, logoBase64, sdaLogoBase64);
 
   // Report title
   doc.setTextColor(...BRAND_PURPLE_DARK);
@@ -222,7 +236,7 @@ export async function exportPDF(
     alternateRowStyles: { fillColor: [248, 244, 252] },
     didDrawPage: (data) => {
       // Repeat letterhead on every page
-      drawTucasaHeader(doc, logoBase64);
+      drawTucasaHeader(doc, logoBase64, sdaLogoBase64);
       if (data.pageNumber > 1) {
         // Compact title on continuation pages
         const hb = (doc.internal.pageSize.getWidth() * (148 / 848) * 1.6);

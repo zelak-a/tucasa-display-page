@@ -1,8 +1,6 @@
-import pcmLogo from "@/assets/pcm-logo.png.asset.json";
-
 export function StartupScreen() {
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#0F172A]">
+    <div className="relative min-h-screen flex flex-col items-center justify-center bg-[#0F172A]">
       {/* Ambient glow behind logo */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div
@@ -18,7 +16,7 @@ export function StartupScreen() {
       {/* Logo */}
       <div className="relative mb-6 animate-float">
         <img
-          src={pcmLogo.url}
+          src="/PCM-logo.png"
           alt="TUCASA Logo"
           className="w-24 h-24 object-contain drop-shadow-[0_0_30px_rgba(96,165,250,0.5)]"
         />

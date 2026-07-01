@@ -455,25 +455,43 @@
   .font-body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
 
   /* Page transitions */
+  .page-transition {
+    will-change: opacity, transform, filter;
+  }
+
+  .animate-in,
+  .animate-out {
+    animation-duration: 320ms !important;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
+  }
+
   @keyframes pageFadeIn {
-    from { opacity: 0; transform: translateY(8px); filter: blur(3px); }
+    from { opacity: 0; transform: translateY(12px); filter: blur(6px); }
     to   { opacity: 1; transform: translateY(0); filter: blur(0); }
   }
   @keyframes pageFadeOut {
     from { opacity: 1; transform: translateY(0); filter: blur(0); }
-    to   { opacity: 0; transform: translateY(-6px); filter: blur(2px); }
+    to   { opacity: 0; transform: translateY(-12px); filter: blur(4px); }
   }
-  .page-transition-in  { animation: pageFadeIn  280ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-  .page-transition-out { animation: pageFadeOut 180ms cubic-bezier(0.4, 0, 1, 1) both; }
+  .page-transition-in  { animation: pageFadeIn  320ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .page-transition-out { animation: pageFadeOut 260ms cubic-bezier(0.4, 0, 0.9, 1) both; }
 
   a, button, [role="button"], .premium-button, input, textarea, select, .church-card, .glass-card, .glass-card-hover {
     transition:
-      background-color 240ms ease,
-      border-color 240ms ease,
-      color 240ms ease,
-      box-shadow 260ms ease,
-      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
-      filter 240ms ease;
+      background-color 280ms ease,
+      border-color 280ms ease,
+      color 280ms ease,
+      box-shadow 30
+      background-color 280ms ease,
+      border-color 280ms ease,
+      color 280ms ease,
+      box-shadow 300ms ease,
+      transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+      filter 28lor 280ms ease,
+      color 280ms ease,
+      box-shadow 300ms ease,
+      transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+      filter 280ms ease;
   }
 
   .glass-card,

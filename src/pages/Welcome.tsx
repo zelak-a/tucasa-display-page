@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import pcmLogo from '@/assets/pcm-logo.png.asset.json';
+
 import { Sparkles, PartyPopper, Loader2, CheckCircle2 } from 'lucide-react';
 
 type Stage = 'form' | 'submitting' | 'celebrating' | 'redirecting';
@@ -14,6 +14,7 @@ type Stage = 'form' | 'submitting' | 'celebrating' | 'redirecting';
 export default function Welcome() {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   const [course, setCourse] = useState('');
@@ -25,10 +26,21 @@ export default function Welcome() {
   useEffect(() => {
     if (loading) return;
     if (!user) { navigate('/auth', { replace: true }); return; }
+
+    const fromSignup = (location.state as any)?.fromSignup;
+
     if (profile && (profile as any).course && (profile as any).year_of_study) {
-      navigate('/dashboard', { replace: true });
+      if (fromSignup) {
+        // If we just came from signup, defer the dashboard redirect briefly
+        // to avoid a race between auth hydration and route changes.
+        setTimeout(() => navigate('/dashboard', { replace: true }), 500);
+        // Clear the history state so subsequent mounts don't see fromSignup
+        try { window.history.replaceState({}, document.title, window.location.pathname); } catch {}
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     }
-  }, [user, profile, loading, navigate]);
+  }, [user, profile, loading, navigate, location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +48,7 @@ export default function Welcome() {
     const d = parseInt(duration, 10);
     const y = parseInt(year, 10);
     if (!course.trim() || !d || !y || y < 1 || d < 1 || y > d + 10) {
-      toast({ title: 'Angalia taarifa', description: 'Jaza course, muda wa kozi na mwaka wa masomo sahihi.', variant: 'destructive' });
+      toast({ title: 'Check your entries', description: 'Please enter a valid course, duration and year of study.', variant: 'destructive' });
       return;
     }
     setStage('submitting');
@@ -48,7 +60,7 @@ export default function Welcome() {
       academic_completed_at: completed ? new Date().toISOString() : null,
     } as any).eq('user_id', user.id);
     if (error) {
-      toast({ title: 'Imeshindikana', description: error.message, variant: 'destructive' });
+      toast({ title: 'Save failed', description: error.message, variant: 'destructive' });
       setStage('form');
       return;
     }
@@ -93,11 +105,11 @@ export default function Welcome() {
         {stage === 'form' && (
           <div className="rounded-[30px] p-6 sm:p-8 bg-gradient-to-br from-white/25 via-white/12 to-white/5 border border-white/30 shadow-[0_32px_90px_-30px_rgba(2,8,23,0.75)] backdrop-blur-[32px] animate-slide-down">
             <div className="flex flex-col items-center text-center mb-6">
-              <img src={pcmLogo.url} alt="TUCASA" className="w-16 h-16 object-contain drop-shadow-[0_0_25px_rgba(96,165,250,0.5)] mb-3 animate-float" />
+              <img src="/PCM-logo.png" alt="TUCASA" className="w-16 h-16 object-contain drop-shadow-[0_0_25px_rgba(96,165,250,0.5)] mb-3 animate-float" />
               <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-wide drop-shadow-[0_2px_6px_rgba(0,0,0,0.35)]">
                 Welcome to TUCASA STUM
               </h1>
-              <p className="mt-2 text-sm text-white/85">Jaza form hii ndogo kukamilisha usajili wako.</p>
+              <p className="mt-2 text-sm text-white/85">Complete this quick form to finish your registration.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -105,7 +117,7 @@ export default function Welcome() {
                 <Label className="text-white font-semibold text-sm">Course</Label>
                 <Input
                   className="auth-input-readable"
-                  placeholder="mfano, BSc Computer Science"
+                  placeholder="e.g. BSc Computer Science"
                   value={course}
                   onChange={e => setCourse(e.target.value)}
                   required
@@ -118,7 +130,7 @@ export default function Welcome() {
                   type="number"
                   min={1}
                   max={10}
-                  placeholder="mfano, 3"
+                  placeholder="e.g. 3"
                   value={duration}
                   onChange={e => setDuration(e.target.value)}
                   required
@@ -131,7 +143,7 @@ export default function Welcome() {
                   type="number"
                   min={1}
                   max={10}
-                  placeholder="mfano, 2"
+                  placeholder="e.g. 2"
                   value={year}
                   onChange={e => setYear(e.target.value)}
                   required
@@ -145,7 +157,7 @@ export default function Welcome() {
         {(stage === 'submitting') && (
           <div className="rounded-[30px] p-10 text-center bg-gradient-to-br from-white/25 via-white/12 to-white/5 border border-white/30 backdrop-blur-[32px] animate-fade-in">
             <Loader2 className="mx-auto h-12 w-12 text-white animate-spin" />
-            <p className="mt-4 text-white font-medium">Inahifadhi taarifa zako...</p>
+            <p className="mt-4 text-white font-medium">Saving your information...</p>
           </div>
         )}
 

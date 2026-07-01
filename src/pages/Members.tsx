@@ -78,7 +78,6 @@ function MemberCard({ member, canEdit, canDelete, onEdit, onDelete }: {
               </Badge>
             </div>
             <div className="space-y-1 text-xs text-muted-foreground">
-              {member.email && <div className="flex items-center gap-1.5"><Mail className="h-3 w-3 shrink-0" /><span className="truncate">{member.email}</span></div>}
               {member.phone && <div className="flex items-center gap-1.5"><Phone className="h-3 w-3 shrink-0" /><span>{member.phone}</span></div>}
               {member.institution && <div className="flex items-center gap-1.5"><Building className="h-3 w-3 shrink-0" /><span>{member.institution}</span></div>}
             </div>
@@ -265,14 +264,14 @@ export default function Members() {
     if (!form.full_name.trim() || !form.branch_id) return;
     if (editing) {
       const { error } = await supabase.from('members').update({
-        full_name: form.full_name, email: form.email || null, phone: form.phone || null,
+        full_name: form.full_name, phone: form.phone || null,
         institution: form.institution || null, branch_id: form.branch_id,
       }).eq('id', editing.id);
       if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
       toast({ title: 'Member updated' });
     } else {
       const { error } = await supabase.from('members').insert({
-        full_name: form.full_name, email: form.email || null, phone: form.phone || null,
+        full_name: form.full_name, phone: form.phone || null,
         institution: form.institution || null, branch_id: form.branch_id,
       });
       if (error) { toast({ title: 'Error', description: error.message, variant: 'destructive' }); return; }
@@ -293,7 +292,7 @@ export default function Members() {
 
   const openEdit = (m: Member) => {
     setEditing(m);
-    setForm({ full_name: m.full_name, email: m.email || '', phone: m.phone || '', institution: m.institution || '', branch_id: m.branch_id });
+    setForm({ full_name: m.full_name, email: '', phone: m.phone || '', institution: m.institution || '', branch_id: m.branch_id });
     setDialogOpen(true);
   };
 
@@ -351,7 +350,6 @@ export default function Members() {
   const visibleMembers = view.level === 'members'
     ? members.filter(m => m.branch_id === view.branch.id && (
         m.full_name.toLowerCase().includes(search.toLowerCase()) ||
-        (m.email?.toLowerCase().includes(search.toLowerCase())) ||
         (m.phone?.toLowerCase().includes(search.toLowerCase()))
       ))
     : [];
@@ -430,7 +428,7 @@ export default function Members() {
             <div className="flex gap-2 flex-wrap justify-end">
               <ExportMenu
                 rows={visibleMembers.map(m => ({
-                  Name: m.full_name, Email: m.email || '', Phone: m.phone || '',
+                  Name: m.full_name, Phone: m.phone || '',
                   Institution: m.institution || '', Branch: view.branch.name,
                   Status: m.is_active ? 'Active' : 'Inactive',
                   Joined: new Date(m.created_at).toLocaleDateString(),
@@ -634,7 +632,6 @@ export default function Members() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
                         <TableHead>Phone</TableHead>
                         <TableHead>Institution</TableHead>
                         <TableHead>Status</TableHead>
@@ -645,7 +642,6 @@ export default function Members() {
                       {visibleMembers.map(m => (
                         <TableRow key={m.id}>
                           <TableCell className="font-medium">{m.full_name}</TableCell>
-                          <TableCell>{m.email || '—'}</TableCell>
                           <TableCell>{m.phone || '—'}</TableCell>
                           <TableCell>{m.institution || '—'}</TableCell>
                           <TableCell>
@@ -684,12 +680,13 @@ export default function Members() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Email</Label>
-                <Input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-              </div>
-              <div className="space-y-2">
                 <Label>Phone</Label>
                 <Input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                {/* space reserved for layout symmetry; email intentionally hidden */}
+                <Label className="text-transparent">Email</Label>
+                <div />
               </div>
             </div>
             <div className="space-y-2">

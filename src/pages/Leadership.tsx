@@ -38,7 +38,7 @@ function LeaderCard({ leader, canManage, onRemove, onToggleActive }: {
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <h3 className="font-medium text-sm truncate">{leader.user_name}</h3>
-            <p className="text-xs text-muted-foreground truncate">{leader.user_email}</p>
+            {/* Email intentionally hidden in UI */}
             <div className="flex flex-wrap items-center gap-1.5 mt-2">
               <Badge variant="outline" className="gap-1 text-[10px]">
                 <Shield className="h-2.5 w-2.5" />{leader.role_name}
@@ -92,7 +92,7 @@ export default function Leadership() {
     const [urRes, rolesRes, profilesRes, unionsRes, confsRes, zonesRes, branchesRes] = await Promise.all([
       supabase.from('user_roles').select('*'),
       supabase.from('roles').select('id, name'),
-      supabase.from('profiles').select('user_id, full_name, email'),
+      supabase.from('profiles').select('user_id, full_name'),
       supabase.from('unions').select('id, name'),
       supabase.from('conferences').select('id, name'),
       supabase.from('zones').select('id, name, conference_id'),
@@ -154,7 +154,7 @@ export default function Leadership() {
         return {
           id: ur.id,
           user_id: ur.user_id,
-          user_email: prof?.email || '',
+          user_email: '',
           user_name: prof?.full_name || 'Unknown',
           role_name: roleMap.get(ur.role_id) || 'Unknown',
           hierarchy_level: ur.hierarchy_level,
@@ -257,7 +257,7 @@ export default function Leadership() {
                   <Select value={form.user_id} onValueChange={v => setForm(f => ({ ...f, user_id: v }))}>
                     <SelectTrigger><SelectValue placeholder="Select user" /></SelectTrigger>
                     <SelectContent>
-                      {profiles.map(p => <SelectItem key={p.user_id} value={p.user_id}>{p.full_name} ({p.email})</SelectItem>)}
+                      {profiles.map(p => <SelectItem key={p.user_id} value={p.user_id}>{p.full_name}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -334,7 +334,7 @@ export default function Leadership() {
                         <TableCell>
                           <div>
                             <span className="font-medium">{l.user_name}</span>
-                            <p className="text-xs text-muted-foreground">{l.user_email}</p>
+                            {/* email hidden */}
                           </div>
                         </TableCell>
                         <TableCell>

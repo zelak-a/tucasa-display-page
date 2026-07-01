@@ -84,6 +84,14 @@ export default function Hierarchy() {
     setOverlay({ level: 'branches', conference: overlay.conference, zone });
   };
   const closeOverlay = () => setOverlay(null);
+  const backOverlay = () => {
+    if (!overlay) return;
+    if (overlay.level === 'branches') {
+      setOverlay({ level: 'zones', conference: overlay.conference });
+    } else if (overlay.level === 'zones') {
+      setOverlay({ level: 'conferences' });
+    }
+  };
 
   const openAdd = (type: typeof dialogType) => {
     setDialogType(type);
@@ -333,13 +341,27 @@ export default function Hierarchy() {
           <div className="fixed inset-0 z-40 bg-slate-50/60 backdrop-blur-3xl" onClick={closeOverlay} />
           <div className="fixed inset-x-0 top-4 z-50 flex justify-center px-4">
             <div className="w-full max-w-3xl">
-              <Card className="premium-card border border-white/20 bg-white/75 shadow-2xl backdrop-blur-2xl">
+              <Card key={overlay.level} className="premium-card border border-white/20 bg-white/75 shadow-2xl backdrop-blur-2xl animate-in fade-in-0 duration-320">
                 <CardContent className="p-5 rounded-[32px] shadow-inner shadow-slate-900/5">
                   <div className="max-h-[calc(100vh-10rem)] overflow-y-auto rounded-[28px] border border-slate-200/60 bg-white/50 p-3 shadow-inner shadow-slate-900/5">
+                    <div className="flex items-center justify-between gap-3 mb-4">
+                      <div>
+                        <p className="text-sm text-slate-500">{overlay.level === 'conferences' ? 'Conferences' : overlay.level === 'zones' ? 'Zones' : 'Branches'}</p>
+                        <h2 className="text-lg font-semibold text-slate-900">Browse hierarchy</h2>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {overlay.level !== 'conferences' && (
+                          <Button variant="ghost" size="sm" onClick={backOverlay} className="h-9">
+                            <ArrowLeft className="h-4 w-4 mr-2" /> Back
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="sm" onClick={closeOverlay} className="h-9">Close</Button>
+                      </div>
+                    </div>
                     <div className="grid gap-3 sm:grid-cols-2">
                       {overlay.level === 'conferences' ? (
                         conferences.map(c => (
-                          <button key={c.id} onClick={() => openOverlayZones(c)} className="text-left group">
+                          <button key={c.id} onClick={() => openOverlayZones(c)} className="text-left group transition-transform duration-300 hover:-translate-y-0.5 hover:scale-[1.01]">
                             <Card className="premium-card-hover bg-white/90 border border-slate-200/80 hover:border-slate-300 transition-colors">
                               <CardContent className="p-4 flex items-center gap-3">
                                 <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-sky-200/70 to-blue-200/70 flex items-center justify-center shrink-0 text-sky-700 shadow-sm shadow-sky-400/10">
@@ -354,7 +376,7 @@ export default function Hierarchy() {
                         ))
                       ) : overlay.level === 'zones' ? (
                         zones.filter(z => z.conference_id === overlay.conference.id).map(z => (
-                          <button key={z.id} onClick={() => openOverlayBranches(z)} className="text-left group">
+                          <button key={z.id} onClick={() => openOverlayBranches(z)} className="text-left group transition-transform duration-300 hover:-translate-y-0.5 hover:scale-[1.01]">
                             <Card className="premium-card-hover bg-white/90 border border-slate-200/80 hover:border-slate-300 transition-colors">
                               <CardContent className="p-4 flex items-center gap-3">
                                 <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-violet-200/70 to-fuchsia-200/70 flex items-center justify-center shrink-0 text-violet-700 shadow-sm shadow-violet-400/10">
@@ -369,7 +391,7 @@ export default function Hierarchy() {
                         ))
                       ) : (
                         branches.filter(b => b.zone_id === overlay.zone.id).map(b => (
-                          <div key={b.id} className="text-left group">
+                          <div key={b.id} className="text-left group transition-transform duration-300 hover:-translate-y-0.5 hover:scale-[1.01]">
                             <Card className="premium-card-hover bg-white/90 border border-slate-200/80 hover:border-slate-300 transition-colors">
                               <CardContent className="p-4 flex items-center gap-3">
                                 <div className="flex-1 min-w-0">

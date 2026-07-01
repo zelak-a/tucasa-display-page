@@ -1,6 +1,8 @@
 import { useLocation } from "react-router-dom";
 import { useEffect, useState, ReactNode } from "react";
 
+const EXIT_DURATION = 260;
+
 export function PageTransition({ children }: { children: ReactNode }) {
   const location = useLocation();
   const [displayChildren, setDisplayChildren] = useState(children);
@@ -11,7 +13,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
     const timeout = window.setTimeout(() => {
       setDisplayChildren(children);
       setStage("in");
-    }, 180);
+    }, EXIT_DURATION);
     return () => window.clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);

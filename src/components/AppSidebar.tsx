@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Users, UserCog, LogOut, Network, BarChart3, ScrollText
 } from "lucide-react";
-import pcmLogo from "@/assets/pcm-logo.png.asset.json";
+
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -40,7 +40,7 @@ export function AppSidebar() {
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
           <img
-            src={pcmLogo.url}
+            src="/PCM-logo.png"
             alt="PCM Logo"
             className="h-8 w-8 rounded-lg object-contain shrink-0"
           />
@@ -107,7 +107,6 @@ export function AppSidebar() {
         {!collapsed && profile && (
           <div className="mb-3 px-2">
             <p className="text-xs font-medium text-sidebar-foreground truncate">{profile.full_name}</p>
-            <p className="text-[10px] text-sidebar-foreground/60 truncate">{profile.email}</p>
           </div>
         )}
         <Button

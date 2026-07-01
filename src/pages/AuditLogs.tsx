@@ -34,6 +34,7 @@ export default function AuditLogs() {
   const navigate = useNavigate();
   const { isUnionLeader } = useAuth();
   const [rows, setRows] = useState<AuditRow[]>([]);
+  const [actorNames, setActorNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [actionFilter, setActionFilter] = useState<string>('all');
@@ -46,7 +47,16 @@ export default function AuditLogs() {
         .select('*')
         .order('created_at', { ascending: false })
         .limit(500);
-      setRows((data as AuditRow[]) || []);
+      const fetched = (data as AuditRow[]) || [];
+      setRows(fetched);
+      // Fetch actor names for any actor_ids we have
+      const ids = Array.from(new Set(fetched.map(r => r.actor_id).filter(Boolean) as string[]));
+      if (ids.length > 0) {
+        const { data: profiles } = await supabase.from('profiles').select('user_id, full_name').in('user_id', ids);
+        const map: Record<string, string> = {};
+        (profiles || []).forEach(p => { (map as any)[p.user_id] = p.full_name; });
+        setActorNames(map);
+      }
       setLoading(false);
     })();
   }, []);
@@ -69,7 +79,8 @@ export default function AuditLogs() {
     if (search) {
       const q = search.toLowerCase();
       return (
-        r.actor_email?.toLowerCase().includes(q) ||
+        (r.actor_id && r.actor_id.toLowerCase().includes(q)) ||
+        (actorNames[r.actor_id || ''] && actorNames[r.actor_id || ''].toLowerCase().includes(q)) ||
         r.entity_type.toLowerCase().includes(q) ||
         r.entity_id?.toLowerCase().includes(q)
       );
@@ -81,7 +92,7 @@ export default function AuditLogs() {
 
   const exportRows = filtered.map(r => ({
     Timestamp: new Date(r.created_at).toLocaleString(),
-    Actor: r.actor_email || r.actor_id || 'system',
+    Actor: actorNames[r.actor_id || ''] || r.actor_id || 'system',
     Action: r.action,
     Entity: r.entity_type,
     'Record ID': r.entity_id || '',
@@ -141,7 +152,7 @@ export default function AuditLogs() {
                     <span className="text-[10px] text-muted-foreground">{new Date(r.created_at).toLocaleString()}</span>
                   </div>
                   <p className="text-sm font-medium">{r.entity_type}</p>
-                  <p className="text-xs text-muted-foreground truncate">by {r.actor_email || 'system'}</p>
+                  <p className="text-xs text-muted-foreground truncate">by {actorNames[r.actor_id || ''] || r.actor_id || 'system'}</p>
                 </CardContent>
               </Card>
             ))}
@@ -165,7 +176,7 @@ export default function AuditLogs() {
                     {filtered.map(r => (
                       <TableRow key={r.id}>
                         <TableCell className="text-xs whitespace-nowrap">{new Date(r.created_at).toLocaleString()}</TableCell>
-                        <TableCell className="text-xs">{r.actor_email || <span className="text-muted-foreground">system</span>}</TableCell>
+                        <TableCell className="text-xs">{actorNames[r.actor_id || ''] || r.actor_id || <span className="text-muted-foreground">system</span>}</TableCell>
                         <TableCell><Badge variant="outline" className={ACTION_COLORS[r.action] || ''}>{r.action}</Badge></TableCell>
                         <TableCell className="text-xs font-mono">{r.entity_type}</TableCell>
                         <TableCell className="text-xs font-mono text-muted-foreground">{r.entity_id?.slice(0, 8)}…</TableCell>

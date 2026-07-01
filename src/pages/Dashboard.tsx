@@ -129,14 +129,41 @@ export default function Dashboard() {
     ? highestLevel.charAt(0).toUpperCase() + highestLevel.slice(1) + ' Leader'
     : 'Member';
 
+  const formatHeroName = (fullName?: string) => {
+    const fallback = 'Member';
+    if (!fullName) return fallback;
+    const words = fullName.trim().split(/\s+/).filter(Boolean);
+    if (words.length === 0) return fallback;
+
+    const firstTwo = words.slice(0, 2).join(' ');
+    // If two names together are too long, fall back to single first name
+    const MAX_LEN = 24;
+    if (firstTwo.length > MAX_LEN) return words[0];
+
+    return words.length === 1 ? words[0] : firstTwo;
+  };
+
   return (
     <DashboardLayout>
       {/* ───── HERO ───── */}
       <section className="relative hero-bg px-4 py-5 sm:p-10 mb-8" style={heroStyle}>
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <img src="/PCM-logo.png" alt="PCM Logo" className="h-10 w-10 rounded-lg object-contain" />
+            <div>
+              <span className="text-lg font-semibold uppercase tracking-[0.22em] text-white">
+                TUCASA STUM
+              </span>
+            </div>
+          </div>
+          <div className="hidden sm:flex items-center gap-2 text-white text-sm uppercase tracking-[0.18em]">
+            <span>Dashboard</span>
+          </div>
+        </div>
         <div className="flex flex-col md:flex-row items-center md:items-stretch justify-between gap-8">
           {/* LEFT: profile */}
           <div className="flex items-center gap-5 sm:gap-6 text-white">
-            <div className="relative group">
+            <div className="relative group -ml-3 sm:ml-0 flex-shrink-0">
               <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-4 border-white/70 shadow-xl bg-white/10 backdrop-blur-sm">
                 {avatar ? (
                   <img src={avatar} alt="Profile" className="w-full h-full object-cover" />
@@ -149,7 +176,7 @@ export default function Dashboard() {
               <button
                 onClick={() => fileRef.current?.click()}
                 className="absolute -bottom-1 -right-1 w-9 h-9 rounded-full gradient-gold border-2 border-white shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
-                aria-label="Badilisha picha"
+                aria-label="Change photo"
                 type="button"
               >
                 <Camera className="w-4 h-4 text-white" />
@@ -158,10 +185,10 @@ export default function Dashboard() {
             </div>
 
             <div className="min-w-0">
-              <h1 className="font-display text-3xl sm:text-4xl leading-tight text-white truncate">
-                {profile?.full_name || 'Mwanachama'}
+              <h1 title={profile?.full_name} className="font-display text-3xl sm:text-4xl leading-tight text-white truncate">
+                {formatHeroName(profile?.full_name)}
               </h1>
-              <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-sm">
+              <div className="hidden sm:inline-flex mt-2 items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-sm">
                 <Shield className="w-3.5 h-3.5 text-gold-light" />
                 <span className="text-white/95">{levelLabel}</span>
               </div>
@@ -169,7 +196,7 @@ export default function Dashboard() {
           </div>
 
           {/* RIGHT: sign out action */}
-          <div className="absolute top-4 right-4 sm:static flex flex-col items-center sm:items-end gap-2 text-center sm:text-right text-white">
+          <div className="hidden sm:flex flex-col items-center sm:items-end gap-2 text-center sm:text-right text-white">
             <Button
               variant="outline"
               size="sm"
@@ -178,6 +205,25 @@ export default function Dashboard() {
             >
               Sign Out
             </Button>
+          </div>
+          {/* Mobile-only bottom corners */}
+          <div className="sm:hidden">
+            <div className="absolute left-4 -bottom-8 z-50">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-sm">
+                <Shield className="w-3.5 h-3.5 text-gold-light" />
+                <span className="text-white/95">{levelLabel}</span>
+              </div>
+            </div>
+            <div className="absolute right-4 -bottom-8 z-50">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={signOut}
+                className="rounded-full border-white/40 bg-white/20 text-white hover:bg-white/40 hover:text-black shadow-lg"
+              >
+                Sign Out
+              </Button>
+            </div>
           </div>
         </div>
       </section>
@@ -195,7 +241,7 @@ export default function Dashboard() {
               <div className="glass-card p-5 border border-white/25 shadow-2xl backdrop-blur-2xl bg-gradient-to-br from-white/25 via-white/12 to-white/5 rounded-[28px]">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-[11px] uppercase tracking-[0.28em] text-white/70">Chaguo la haraka</p>
+                    <p className="text-[11px] uppercase tracking-[0.28em] text-white/70">Quick actions</p>
                     <h3 className="mt-2 text-lg font-semibold text-white">{activeModule.title}</h3>
                   </div>
                   <button
@@ -203,7 +249,7 @@ export default function Dashboard() {
                     onClick={() => setActiveModule(null)}
                     className="rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20"
                   >
-                    Funga
+                    Close
                   </button>
                 </div>
                 <button
@@ -214,7 +260,7 @@ export default function Dashboard() {
                   }}
                   className="mt-4 w-full rounded-2xl bg-gradient-to-r from-church-blue to-church-blue-light px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-church-blue/20"
                 >
-                  Fungua {activeModule.title}
+                    Open {activeModule.title}
                 </button>
               </div>
               </div>
@@ -250,29 +296,31 @@ export default function Dashboard() {
 
       {myMembership && (
         <Card className="glass-card mb-6">
-          <CardHeader className="pb-2 flex flex-row items-center justify-between gap-2">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg font-display">
-              <UserCircle className="h-5 w-5 text-church-blue" /> Taarifa Zangu za Uanachama
-            </CardTitle>
-            <Button
-              variant="outline" size="sm" className="gap-1"
-              onClick={() => {
-                setEditForm({
-                  full_name: myMembership.full_name || '',
-                  phone: myMembership.phone || '',
-                  institution: myMembership.institution || '',
-                });
-                setEditOpen(true);
-              }}
-            >
-              <Pencil className="h-3.5 w-3.5" /> Hariri
-            </Button>
-          </CardHeader>
+              <CardHeader className="pb-2 flex flex-row items-center justify-between gap-2">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg font-display">
+                  <UserCircle className="h-5 w-5 text-church-blue" /> My Membership Details
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline" size="sm" className="gap-1"
+                    onClick={() => {
+                      setEditForm({
+                        full_name: myMembership.full_name || '',
+                        phone: myMembership.phone || '',
+                        institution: myMembership.institution || '',
+                      });
+                      setEditOpen(true);
+                    }}
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </Button>
+                </div>
+              </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
-            <div><span className="text-muted-foreground">Jina:</span> <span className="font-medium">{myMembership.full_name}</span></div>
-            <div><span className="text-muted-foreground">Hali:</span> <span className="font-medium">{myMembership.is_active ? 'Active' : 'Inactive'}</span></div>
-            {myMembership.phone && <div><span className="text-muted-foreground">Simu:</span> {myMembership.phone}</div>}
-            {myMembership.institution && <div><span className="text-muted-foreground">Chuo:</span> {myMembership.institution}</div>}
+            <div><span className="text-muted-foreground">Name:</span> <span className="font-medium">{myMembership.full_name}</span></div>
+            <div><span className="text-muted-foreground">Status:</span> <span className="font-medium">{myMembership.is_active ? 'Active' : 'Inactive'}</span></div>
+            {myMembership.phone && <div><span className="text-muted-foreground">Phone:</span> {myMembership.phone}</div>}
+            {myMembership.institution && <div><span className="text-muted-foreground">Institution:</span> {myMembership.institution}</div>}
             {myMembership.union_name && <div><span className="text-muted-foreground">Union:</span> {myMembership.union_name}</div>}
             {myMembership.conference_name && <div><span className="text-muted-foreground">Conference:</span> {myMembership.conference_name}</div>}
             {myMembership.zone_name && <div><span className="text-muted-foreground">Zone:</span> {myMembership.zone_name}</div>}
@@ -284,7 +332,7 @@ export default function Dashboard() {
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Hariri Taarifa Zangu</DialogTitle>
+            <DialogTitle>Edit My Details</DialogTitle>
           </DialogHeader>
           <form
             onSubmit={async (e) => {
@@ -300,31 +348,31 @@ export default function Dashboard() {
               const { error: pErr } = await supabase.from('profiles').update(payload).eq('user_id', user.id);
               setSavingProfile(false);
               if (mErr || pErr) {
-                toast({ title: 'Hitilafu', description: (mErr || pErr)?.message, variant: 'destructive' });
+                  toast({ title: 'Error', description: (mErr || pErr)?.message, variant: 'destructive' });
                 return;
               }
-              toast({ title: 'Taarifa zimehifadhiwa' });
+                toast({ title: 'Details saved' });
               setEditOpen(false);
               setMyMembership(prev => prev ? { ...prev, ...payload } : prev);
             }}
             className="space-y-4"
           >
             <div className="space-y-2">
-              <Label>Jina kamili</Label>
+              <Label>Full Name</Label>
               <Input value={editForm.full_name} onChange={e => setEditForm(f => ({ ...f, full_name: e.target.value }))} required />
             </div>
             <div className="space-y-2">
-              <Label>Namba ya simu</Label>
+              <Label>Phone Number</Label>
               <Input value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))} />
             </div>
             <div className="space-y-2">
-              <Label>Taasisi / Chuo</Label>
+              <Label>Institution / College</Label>
               <Input value={editForm.institution} onChange={e => setEditForm(f => ({ ...f, institution: e.target.value }))} />
             </div>
-            <p className="text-xs text-muted-foreground">Note: Tawi (branch) haliwezi kubadilishwa hapa. Wasiliana na kiongozi wa tawi lako kama umehama.</p>
+            <p className="text-xs text-muted-foreground">Note: Branch cannot be changed here. Contact your branch leader if you have moved.</p>
             <div className="flex gap-2 justify-end">
-              <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Ghairi</Button>
-              <Button type="submit" disabled={savingProfile}>{savingProfile ? 'Inahifadhi...' : 'Hifadhi'}</Button>
+              <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={savingProfile}>{savingProfile ? 'Saving...' : 'Save'}</Button>
             </div>
           </form>
         </DialogContent>
@@ -334,9 +382,9 @@ export default function Dashboard() {
         <Card className="border-dashed glass-card">
           <CardContent className="py-10 text-center px-4">
             <Users className="h-10 w-10 mx-auto text-muted-foreground/40 mb-4" />
-            <h3 className="font-display text-lg mb-2">Taarifa zako hazipatikani</h3>
+            <h3 className="font-display text-lg mb-2">Your details are not available</h3>
             <p className="text-muted-foreground text-sm max-w-md mx-auto">
-              Wasiliana na kiongozi wa tawi lako.
+              Contact your branch leader.
             </p>
           </CardContent>
         </Card>

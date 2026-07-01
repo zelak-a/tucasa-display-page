@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate, useLocation } from "react-router-dom";
 import { PageTransition } from "@/components/PageTransition";
@@ -18,16 +19,47 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function useStartupSplash(loading: boolean) {
+  const [splashLocked, setSplashLocked] = useState(false);
+  const timerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (loading) {
+      setSplashLocked(true);
+      if (timerRef.current) {
+        window.clearTimeout(timerRef.current);
+      }
+      timerRef.current = window.setTimeout(() => {
+        timerRef.current = null;
+        setSplashLocked(false);
+      }, 2000);
+    } else if (!loading && timerRef.current === null) {
+      setSplashLocked(false);
+    }
+
+    return () => {
+      if (timerRef.current) {
+        window.clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [loading]);
+
+  return loading || splashLocked;
+}
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return <StartupScreen />;
+  const showSplash = useStartupSplash(loading);
+  if (showSplash) return <StartupScreen />;
   if (!user) return <Navigate to="/auth" replace />;
   return <>{children}</>;
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return <StartupScreen />;
+  const showSplash = useStartupSplash(loading);
+  if (showSplash) return <StartupScreen />;
   if (user) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 }

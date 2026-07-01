@@ -160,28 +160,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signIn = async (phone: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email: phoneToEmail(phone),
-      password,
-    });
-    if (error) throw error;
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: phoneToEmail(phone),
+        password,
+      });
+      if (error) throw error;
+    } finally {
+      // Keep loading true until auth state changes and hydrate() resets it.
+      if (!supabase.auth.session) {
+        setLoading(false);
+      }
+    }
   };
 
   const signUp = async (phone: string, password: string, fullName: string, branchId: string, institution?: string) => {
-    const clean = phone.replace(/\D/g, '');
-    const { error } = await supabase.auth.signUp({
-      email: phoneToEmail(phone),
-      password,
-      options: {
-        data: { full_name: fullName, phone: clean, branch_id: branchId, institution: institution || null },
-        emailRedirectTo: window.location.origin,
-      },
-    });
-    if (error) throw error;
+    setLoading(true);
+    try {
+      const clean = phone.replace(/\D/g, '');
+      const { error } = await supabase.auth.signUp({
+        email: phoneToEmail(phone),
+        password,
+        options: {
+          data: { full_name: fullName, phone: clean, branch_id: branchId, institution: institution || null },
+          emailRedirectTo: window.location.origin,
+        },
+      });
+      if (error) throw error;
+    } finally {
+      if (!supabase.auth.session) {
+        setLoading(false);
+      }
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    setLoading(true);
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      // Keep loading true until auth state changes and hydrate() resets it.
+      if (supabase.auth.session === null) {
+        setLoading(false);
+      }
+    }
   };
 
   return (

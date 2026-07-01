@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import pcmLogo from '@/assets/pcm-logo.png.asset.json';
+
 import { LogIn, UserPlus, X } from 'lucide-react';
 
 type Row = { id: string; name: string };
@@ -62,7 +62,7 @@ export default function Auth() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validatePhone(phone)) {
-      toast({ title: 'Namba si sahihi', description: 'Tafadhali weka namba ya simu sahihi.', variant: 'destructive' });
+      toast({ title: 'Invalid phone number', description: 'Please enter a valid phone number.', variant: 'destructive' });
       return;
     }
     setLoading(true);
@@ -70,7 +70,7 @@ export default function Auth() {
       await signIn(phone, password);
       navigate('/dashboard');
     } catch (err: any) {
-      toast({ title: 'Imeshindikana kuingia', description: err.message, variant: 'destructive' });
+      toast({ title: 'Sign-in failed', description: err.message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -79,20 +79,20 @@ export default function Auth() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validatePhone(phone)) {
-      toast({ title: 'Namba si sahihi', description: 'Tafadhali weka namba ya simu sahihi.', variant: 'destructive' });
+      toast({ title: 'Invalid phone number', description: 'Please enter a valid phone number.', variant: 'destructive' });
       return;
     }
     if (!conferenceId || !zoneId || !branchId) {
-      toast({ title: 'Chagua hierarchy', description: 'Tafadhali chagua Conference, Zone na Branch.', variant: 'destructive' });
+      toast({ title: 'Select hierarchy', description: 'Please choose a Conference, Zone and Branch.', variant: 'destructive' });
       return;
     }
     setLoading(true);
     try {
       await signUp(phone, password, fullName, branchId, institution);
       await signIn(phone, password);
-      navigate('/welcome');
+      navigate('/welcome', { replace: true, state: { fromSignup: true } as any });
     } catch (err: any) {
-      toast({ title: 'Usajili umeshindikana', description: err.message, variant: 'destructive' });
+      toast({ title: 'Sign-up failed', description: err.message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -141,15 +141,15 @@ export default function Auth() {
                   type="button"
                   onClick={resetForm}
                   className="absolute top-4 right-4 z-10 p-1.5 rounded-full text-white/70 hover:text-white hover:bg-white/15 transition-colors"
-                  aria-label="Funga"
+                  aria-label="Close"
                 >
                   <X className="w-5 h-5" />
                 </button>
                 <h2 className="text-white font-semibold mb-5 text-center text-lg tracking-[0.02em] drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">
-                  Ingia kwenye akaunti yako
+                  Sign in to your account
                 </h2>
                 <form onSubmit={handleSignIn} className="space-y-3">
-                  <Field label="Namba ya Simu">
+                  <Field label="Phone Number">
                     <Input
                       id="signin-phone"
                       type="tel"
@@ -161,7 +161,7 @@ export default function Auth() {
                       required
                     />
                   </Field>
-                  <Field label="Nenosiri">
+                  <Field label="Password">
                     <Input
                       id="signin-password"
                       type="password"
@@ -172,14 +172,14 @@ export default function Auth() {
                     />
                   </Field>
                   <Button type="submit" className="auth-submit w-full mt-1" disabled={loading}>
-                    {loading ? 'Inaingia...' : 'Ingia'}
+                    {loading ? 'Signing in...' : 'Sign In'}
                   </Button>
                   <button
                     type="button"
                     onClick={resetForm}
                     className="auth-link w-full text-center text-sm py-1"
                   >
-                    Ghairi
+                    Cancel
                   </button>
                 </form>
               </div>
@@ -191,15 +191,15 @@ export default function Auth() {
                   type="button"
                   onClick={resetForm}
                   className="absolute top-4 right-4 p-1.5 rounded-full text-white/70 hover:text-white hover:bg-white/15 transition-colors"
-                  aria-label="Funga"
+                  aria-label="Close"
                 >
                   <X className="w-5 h-5" />
                 </button>
                 <h2 className="text-white font-semibold mb-5 text-center text-lg tracking-[0.02em] drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">
-                  Fungua akaunti mpya
+                  Create a new account
                 </h2>
                 <form onSubmit={handleSignUp} className="space-y-3">
-                  <Field label="Jina Kamili">
+                  <Field label="Full Name">
                     <Input
                       id="signup-name"
                       className="auth-input-readable"
@@ -208,7 +208,7 @@ export default function Auth() {
                       required
                     />
                   </Field>
-                  <Field label="Namba ya Simu">
+                  <Field label="Phone Number">
                     <Input
                       id="signup-phone"
                       type="tel"
@@ -220,7 +220,7 @@ export default function Auth() {
                       required
                     />
                   </Field>
-                  <Field label="Nenosiri (angalau herufi 6)">
+                  <Field label="Password (min 6 chars)">
                     <Input
                       id="signup-password"
                       type="password"
@@ -231,13 +231,13 @@ export default function Auth() {
                       minLength={6}
                     />
                   </Field>
-                  <Field label="Chuo / Taasisi (hiari)">
+                  <Field label="Institution / College (optional)">
                     <Input
                       id="signup-institution"
                       className="auth-input-readable"
                       value={institution}
                       onChange={e => setInstitution(e.target.value)}
-                      placeholder="mfano, UDSM"
+                      placeholder="e.g. UDSM"
                     />
                   </Field>
                   <Field label="Union">
@@ -246,7 +246,7 @@ export default function Auth() {
                   <Field label="Conference *">
                     <Select value={conferenceId} onValueChange={v => { setConferenceId(v); setZoneId(''); setBranchId(''); }}>
                       <SelectTrigger className="auth-select-readable h-11 rounded-2xl text-slate-900 data-[placeholder]:text-slate-500 disabled:opacity-100 disabled:bg-white/15 disabled:text-white disabled:data-[placeholder]:text-white/80">
-                        <SelectValue placeholder="Chagua Conference" />
+                        <SelectValue placeholder="Select Conference" />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-white/20 bg-white/95 text-slate-900 shadow-2xl backdrop-blur-xl">
                         {conferences.map(c => <SelectItem key={c.id} value={c.id} className="focus:bg-church-blue/10 focus:text-church-blue-dark">{c.name}</SelectItem>)}
@@ -256,17 +256,17 @@ export default function Auth() {
                   <Field label="Zone *">
                     <Select value={zoneId} onValueChange={v => { setZoneId(v); setBranchId(''); }} disabled={!conferenceId}>
                       <SelectTrigger className="auth-select-readable h-11 rounded-2xl text-slate-900 data-[placeholder]:text-slate-500 disabled:opacity-100 disabled:bg-white/15 disabled:text-white disabled:data-[placeholder]:text-white/80">
-                        <SelectValue placeholder={conferenceId ? 'Chagua Zone' : 'Chagua Conference kwanza'} />
+                        <SelectValue placeholder={conferenceId ? 'Select Zone' : 'Select Conference first'} />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-white/20 bg-white/95 text-slate-900 shadow-2xl backdrop-blur-xl">
                         {filteredZones.map(z => <SelectItem key={z.id} value={z.id} className="focus:bg-church-blue/10 focus:text-church-blue-dark">{z.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </Field>
-                  <Field label="Branch / Tawi *">
+                  <Field label="Branch *">
                     <Select value={branchId} onValueChange={setBranchId} disabled={!zoneId}>
                       <SelectTrigger className="auth-select-readable h-11 rounded-2xl text-slate-900 data-[placeholder]:text-slate-500 disabled:opacity-100 disabled:bg-white/15 disabled:text-white disabled:data-[placeholder]:text-white/80">
-                        <SelectValue placeholder={zoneId ? 'Chagua Branch' : 'Chagua Zone kwanza'} />
+                        <SelectValue placeholder={zoneId ? 'Select Branch' : 'Select Zone first'} />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl border-white/20 bg-white/95 text-slate-900 shadow-2xl backdrop-blur-xl">
                         {filteredBranches.map(b => <SelectItem key={b.id} value={b.id} className="focus:bg-church-blue/10 focus:text-church-blue-dark">{b.name}</SelectItem>)}
@@ -274,14 +274,14 @@ export default function Auth() {
                     </Select>
                   </Field>
                   <Button type="submit" className="auth-submit w-full mt-1" disabled={loading}>
-                    {loading ? 'Inasajili...' : 'Jisajili'}
+                    {loading ? 'Signing up...' : 'Sign Up'}
                   </Button>
                   <button
                     type="button"
                     onClick={resetForm}
                     className="auth-link w-full text-center text-sm py-1"
                   >
-                    Ghairi
+                    Cancel
                   </button>
                 </form>
               </div>
@@ -296,7 +296,7 @@ export default function Auth() {
         {/* Logo */}
         <div className="mb-6 animate-float">
           <img
-            src={pcmLogo.url}
+            src="/PCM-logo.png"
             alt="TUCASA Logo"
             className="w-24 h-24 object-contain drop-shadow-[0_0_30px_rgba(96,165,250,0.5)]"
           />
@@ -309,8 +309,8 @@ export default function Auth() {
         >
           TUCASA STUM
         </h1>
-        <p className="text-sm text-white/80 mb-10 text-center max-w-xs italic">
-          Mfumo wa Usimamizi wa Wanachama
+          <p className="text-sm text-white/80 mb-10 text-center max-w-xs italic">
+          Member Management System
         </p>
 
         {/* Action buttons */}
@@ -320,14 +320,14 @@ export default function Auth() {
             className="auth-cta auth-cta-primary flex-1 h-12 rounded-full text-base font-semibold"
           >
             <LogIn className="w-4 h-4 mr-2" />
-            Ingia
+            Sign In
           </Button>
           <Button
             onClick={() => setOpenForm('signup')}
             className="auth-cta auth-cta-secondary flex-1 h-12 rounded-full text-base font-semibold text-white border-silver"
           >
             <UserPlus className="w-4 h-4 mr-2" />
-            Jisajili
+            Sign Up
           </Button>
         </div>
 
