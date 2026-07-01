@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Users, TrendingUp, Building2, MapPin, ArrowLeft } from 'lucide-react';
 import { ExportMenu } from '@/components/ExportMenu';
 import { useAuth } from '@/contexts/AuthContext';
+import { SEO } from '@/components/SEO';
 
 const CHART_COLORS = [
   'hsl(142, 60%, 35%)',
@@ -173,6 +174,10 @@ export default function Reports() {
   if (loading) {
     return (
       <DashboardLayout>
+        <SEO
+          title="Reports"
+          description="Loading TUCASA STUM reports and membership analytics."
+        />
         <div className="flex items-center justify-center py-20">
           <p className="text-muted-foreground">Loading reports...</p>
         </div>
@@ -186,6 +191,10 @@ export default function Reports() {
 
   return (
     <DashboardLayout>
+      <SEO
+        title="Reports"
+        description="View membership reports, active member analytics, and hierarchy performance in TUCASA STUM."
+      />
       <div className="page-header flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="page-title text-2xl sm:text-3xl">Reports</h1>

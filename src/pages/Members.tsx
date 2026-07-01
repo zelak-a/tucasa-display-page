@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Edit, Trash2, Mail, Phone, Building, ChevronRight, ArrowLeft, Users, Network, MapPin, GitBranch } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { SEO } from '@/components/SEO';
 import { ExportMenu } from '@/components/ExportMenu';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -366,6 +367,10 @@ export default function Members() {
 
   return (
     <DashboardLayout>
+      <SEO
+        title="Members"
+        description="Manage member profiles, search across branches, and export membership data in TUCASA STUM."
+      />
       <div className="premium-card p-5 mb-6 border border-white/10 shadow-2xl">
         <div className="page-header mb-4 flex items-center justify-between gap-3">
           <div>

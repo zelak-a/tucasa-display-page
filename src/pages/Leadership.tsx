@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, Shield, Network, MapPin, GitBranch, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { SEO } from '@/components/SEO';
 
 interface LeaderRow {
   id: string;
@@ -225,6 +226,10 @@ export default function Leadership() {
 
   return (
     <DashboardLayout>
+      <SEO
+        title="Leadership"
+        description="Assign and manage leadership roles across TUCASA hierarchy levels."
+      />
       <div className="premium-card p-5 mb-6 border border-white/10 shadow-2xl">
         <div className="page-header mb-4 flex items-center justify-between gap-3">
           <div>

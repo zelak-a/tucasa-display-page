@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { SEO } from '@/components/SEO';
 
 import { LogIn, UserPlus, X } from 'lucide-react';
 
@@ -105,8 +106,13 @@ export default function Auth() {
     'backdrop-blur-[32px] saturate-[180%] animate-slide-down';
 
   return (
-    <div className="relative z-10 min-h-screen w-full overflow-hidden flex flex-col items-center justify-center px-4"
-      style={{
+    <>
+      <SEO
+        title="Sign In / Sign Up"
+        description="Secure sign in and registration for TUCASA STUM member management."
+      />
+      <div className="relative z-10 min-h-screen w-full overflow-hidden flex flex-col items-center justify-center px-4"
+        style={{
         background:
           "radial-gradient(1200px 700px at 10% -10%, rgba(96,165,250,0.5), transparent 60%)," +
           "radial-gradient(900px 600px at 100% 0%, rgba(186,230,253,0.35), transparent 60%)," +
@@ -337,6 +343,7 @@ export default function Auth() {
         </div>
       </div>
     </div>
+  </>
   );
 }
 

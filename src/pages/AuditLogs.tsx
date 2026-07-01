@@ -64,6 +64,10 @@ export default function AuditLogs() {
   if (!isUnionLeader) {
     return (
       <DashboardLayout>
+        <SEO
+          title="Audit Logs"
+          description="Audit logs are restricted to Union leaders in TUCASA STUM."
+        />
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <ShieldAlert className="h-12 w-12 text-muted-foreground/40 mb-4" />
           <h2 className="font-display text-lg font-semibold">Restricted</h2>
@@ -100,6 +104,10 @@ export default function AuditLogs() {
 
   return (
     <DashboardLayout>
+      <SEO
+        title="Audit Logs"
+        description="Review the last 500 system changes for TUCASA STUM with audit logging."
+      />
       <div className="page-header flex items-start justify-between gap-3">
         <div>
           <h1 className="page-title text-2xl sm:text-3xl">Audit Logs</h1>

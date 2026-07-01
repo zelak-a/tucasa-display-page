@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Trash2, Building2, MapPin, GitBranch, Globe, Network, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { SEO } from '@/components/SEO';
 
 function HierarchyCard({ item, fields, canDelete, onDelete }: {
   item: any;
@@ -156,6 +157,10 @@ export default function Hierarchy() {
 
   return (
     <DashboardLayout>
+      <SEO
+        title="Hierarchy"
+        description="View and manage the organizational structure of unions, conferences, zones, and branches."
+      />
       <div className="premium-card p-5 mb-6 border border-white/10 shadow-2xl">
         <div className="page-header mb-4 flex items-center justify-between gap-3">
           <div>

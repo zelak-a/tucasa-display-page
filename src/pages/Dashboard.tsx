@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { SEO } from '@/components/SEO';
 import {
   Users, ShieldCheck, FileText, Network, UserCircle,
   Camera, Shield, Pencil,
@@ -145,6 +146,10 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
+      <SEO
+        title="Dashboard"
+        description="TUCASA STUM member dashboard with quick access to members, leadership, hierarchy and reports."
+      />
       {/* ───── HERO ───── */}
       <section className="relative hero-bg px-4 py-5 sm:p-10 mb-8" style={heroStyle}>
         <div className="mb-6 flex items-center justify-between gap-4">
