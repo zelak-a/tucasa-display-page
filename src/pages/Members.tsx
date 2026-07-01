@@ -433,7 +433,7 @@ export default function Members() {
                   Name: m.full_name, Email: m.email || '', Phone: m.phone || '',
                   Institution: m.institution || '', Branch: view.branch.name,
                   Status: m.is_active ? 'Active' : 'Inactive',
-                  Joined: new Date(m.joined_at).toLocaleDateString(),
+                  Joined: new Date(m.created_at).toLocaleDateString(),
                 }))}
                 filename={`members-${view.branch.name}`}
                 title={`Members — ${view.branch.name}`}
