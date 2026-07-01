@@ -40,6 +40,7 @@ interface ConferenceStat {
 }
 
 interface HierarchyExportRow {
+  [key: string]: string | number;
   Union: string;
   Conference: string;
   Zone: string;
