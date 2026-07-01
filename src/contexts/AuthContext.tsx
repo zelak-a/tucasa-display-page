@@ -140,9 +140,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const isUnionLeader = userRoles.some(r => r.hierarchy_level === 'union');
+  const isUnionLeader = userRoles.some(r => r.hierarchy_level === 'union') || isSuperAdmin;
 
   const hasPermission = (permission: string) => {
+    if (isSuperAdmin) return true;
     return userRoles.some(r => r.permissions.includes(permission));
   };
 
