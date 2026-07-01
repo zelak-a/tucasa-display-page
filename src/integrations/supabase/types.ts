@@ -190,7 +190,10 @@ export type Database = {
       }
       profiles: {
         Row: {
+          academic_completed_at: string | null
           branch_id: string | null
+          course: string | null
+          course_duration: number | null
           created_at: string
           email: string | null
           full_name: string | null
@@ -199,9 +202,13 @@ export type Database = {
           phone: string | null
           updated_at: string
           user_id: string
+          year_of_study: number | null
         }
         Insert: {
+          academic_completed_at?: string | null
           branch_id?: string | null
+          course?: string | null
+          course_duration?: number | null
           created_at?: string
           email?: string | null
           full_name?: string | null
@@ -210,9 +217,13 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id: string
+          year_of_study?: number | null
         }
         Update: {
+          academic_completed_at?: string | null
           branch_id?: string | null
+          course?: string | null
+          course_duration?: number | null
           created_at?: string
           email?: string | null
           full_name?: string | null
@@ -221,6 +232,7 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id?: string
+          year_of_study?: number | null
         }
         Relationships: [
           {
