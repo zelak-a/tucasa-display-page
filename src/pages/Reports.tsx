@@ -39,27 +39,40 @@ interface ConferenceStat {
   zones: number;
 }
 
+interface HierarchyExportRow {
+  [key: string]: string | number;
+  Union: string;
+  Conference: string;
+  Zone: string;
+  Branch: string;
+  Members: number;
+  Active: number;
+}
+
 export default function Reports() {
   const navigate = useNavigate();
   const { highestLevel, userRoles, user } = useAuth();
   const [branchStats, setBranchStats] = useState<BranchStat[]>([]);
   const [zoneStats, setZoneStats] = useState<ZoneStat[]>([]);
   const [conferenceStats, setConferenceStats] = useState<ConferenceStat[]>([]);
+  const [hierarchyRows, setHierarchyRows] = useState<HierarchyExportRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      const [membersRes, branchesRes, zonesRes, confsRes] = await Promise.all([
+      const [membersRes, branchesRes, zonesRes, confsRes, unionsRes] = await Promise.all([
         supabase.from('members').select('id, is_active, branch_id, user_id'),
         supabase.from('branches').select('id, name, zone_id'),
         supabase.from('zones').select('id, name, conference_id'),
-        supabase.from('conferences').select('id, name'),
+        supabase.from('conferences').select('id, name, union_id'),
+        supabase.from('unions').select('id, name'),
       ]);
 
       const members = membersRes.data || [];
       const branches = branchesRes.data || [];
       const zones = zonesRes.data || [];
       const conferences = confsRes.data || [];
+      const unions = unionsRes.data || [];
 
       // Compute scope
       const isUnion = userRoles.some(r => r.hierarchy_level === 'union');
@@ -73,7 +86,6 @@ export default function Reports() {
         zoneIds = new Set(zones.map(z => z.id));
         branchIds = new Set(branches.map(b => b.id));
       } else if (isPlainMember) {
-        // Only own branch
         const myMember = members.find(m => (m as any).user_id === user?.id);
         if (myMember) branchIds.add(myMember.branch_id);
       } else {
@@ -118,9 +130,33 @@ export default function Reports() {
         };
       }).sort((a, b) => b.members - a.members);
 
+      // Full hierarchy breakdown for export
+      const unionMap = new Map(unions.map(u => [u.id, u.name]));
+      const confMap = new Map(conferences.map(c => [c.id, c]));
+      const zoneMap = new Map(zones.map(z => [z.id, z]));
+      const hRows: HierarchyExportRow[] = scopedBranches.map(b => {
+        const z: any = zoneMap.get(b.zone_id);
+        const c: any = z ? confMap.get(z.conference_id) : null;
+        const uName = c ? (unionMap.get(c.union_id) || '') : '';
+        const bMembers = scopedMembers.filter(m => m.branch_id === b.id);
+        return {
+          Union: uName,
+          Conference: c?.name || '',
+          Zone: z?.name || '',
+          Branch: b.name,
+          Members: bMembers.length,
+          Active: bMembers.filter(m => m.is_active).length,
+        };
+      }).sort((a, b) =>
+        a.Conference.localeCompare(b.Conference) ||
+        a.Zone.localeCompare(b.Zone) ||
+        a.Branch.localeCompare(b.Branch)
+      );
+
       setBranchStats(bStats);
       setZoneStats(zStats);
       setConferenceStats(cStats);
+      setHierarchyRows(hRows);
       setLoading(false);
     };
     fetchData();
@@ -130,16 +166,8 @@ export default function Reports() {
   const totalActive = branchStats.reduce((s, b) => s + b.active, 0);
   const activeRate = totalMembers > 0 ? Math.round((totalActive / totalMembers) * 100) : 0;
 
-  const branchChartConfig = Object.fromEntries(
-    branchStats.map((b, i) => [b.name, { label: b.name, color: CHART_COLORS[i % CHART_COLORS.length] }])
-  );
-
   const conferenceChartConfig = Object.fromEntries(
     conferenceStats.map((c, i) => [c.name, { label: c.name, color: CHART_COLORS[i % CHART_COLORS.length] }])
-  );
-
-  const zoneChartConfig = Object.fromEntries(
-    zoneStats.map((z, i) => [z.name, { label: z.name, color: CHART_COLORS[i % CHART_COLORS.length] }])
   );
 
   if (loading) {
@@ -168,12 +196,13 @@ export default function Reports() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <ExportMenu
-            rows={branchStats.map(b => ({ Branch: b.name, Members: b.members, Active: b.active }))}
-            filename="branch-report"
-            title="TUCASA Branch Report"
+            rows={hierarchyRows}
+            filename="tucasa-hierarchy-report"
+            title="TUCASA Hierarchy Report (Union → Conference → Zone → Branch)"
           />
         </div>
       </div>
+
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
@@ -215,97 +244,68 @@ export default function Reports() {
         </Card>
       </div>
 
-      {/* Members by Branch - Bar Chart */}
+      {/* Members by Conference - Bar Chart */}
       <Card className="premium-card-hover mb-6">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base sm:text-lg font-display">Members by Branch</CardTitle>
-          <CardDescription className="text-xs sm:text-sm">Total and active members per branch</CardDescription>
+          <CardTitle className="text-base sm:text-lg font-display">Members by Conference</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">Total members per conference</CardDescription>
         </CardHeader>
         <CardContent className="px-2 sm:px-6">
-              {branchStats.length > 0 ? (
-            <ChartContainer config={branchChartConfig} className="h-[250px] sm:h-[300px] w-full">
+          {conferenceStats.length > 0 ? (
+            <ChartContainer config={conferenceChartConfig} className="h-[260px] sm:h-[320px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={branchStats} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                <BarChart data={conferenceStats} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
                   <defs>
-                    <linearGradient id="membersGradient" x1="0" x2="0" y1="0" y2="1">
+                    <linearGradient id="confGradient" x1="0" x2="0" y1="0" y2="1">
                       <stop offset="0%" stopColor="hsl(142, 60%, 45%)" stopOpacity={0.98} />
                       <stop offset="100%" stopColor="hsl(142, 60%, 35%)" stopOpacity={0.86} />
                     </linearGradient>
-                    <linearGradient id="activeGradient" x1="0" x2="0" y1="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(210, 80%, 60%)" stopOpacity={0.98} />
-                      <stop offset="100%" stopColor="hsl(210, 80%, 50%)" stopOpacity={0.86} />
-                    </linearGradient>
                   </defs>
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-30} textAnchor="end" height={60} />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-20} textAnchor="end" height={70} />
                   <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="members" fill="url(#membersGradient)" radius={[8, 8, 0, 0]} animationDuration={900} name="Total" />
-                  <Bar dataKey="active" fill="url(#activeGradient)" radius={[8, 8, 0, 0]} animationDuration={900} name="Active" />
+                  <Bar dataKey="members" fill="url(#confGradient)" radius={[8, 8, 0, 0]} animationDuration={900} name="Members" />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
           ) : (
-            <p className="text-muted-foreground text-sm py-8 text-center">No branch data available</p>
+            <p className="text-muted-foreground text-sm py-8 text-center">No conference data available</p>
           )}
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-        {/* Members by Conference - Pie Chart */}
-        <Card className="premium-card-hover">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base sm:text-lg font-display">Members by Conference</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Distribution across conferences</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {conferenceStats.length > 0 ? (
-              <ChartContainer config={conferenceChartConfig} className="h-[250px] w-full">
-                <PieChart>
-                  <ChartTooltip content={<ChartTooltipContent nameKey="name" />} />
-                  <Pie
-                    data={conferenceStats}
-                    dataKey="members"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    label={({ name, members }) => `${name}: ${members}`}
-                    labelLine={false}
-                  >
-                    {conferenceStats.map((_, i) => (
-                      <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ChartContainer>
-            ) : (
-              <p className="text-muted-foreground text-sm py-8 text-center">No conference data</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Members by Zone - Bar Chart */}
-        <Card className="premium-card-hover">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base sm:text-lg font-display">Members by Zone</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Member count per zone</CardDescription>
-          </CardHeader>
-          <CardContent className="px-2 sm:px-6">
-            {zoneStats.length > 0 ? (
-              <ChartContainer config={zoneChartConfig} className="h-[250px] w-full">
-                <BarChart data={zoneStats} layout="vertical" margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                  <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-                  <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={80} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="members" fill="hsl(38, 90%, 55%)" radius={[0, 4, 4, 0]} name="Members" />
-                </BarChart>
-              </ChartContainer>
-            ) : (
-              <p className="text-muted-foreground text-sm py-8 text-center">No zone data</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      {/* Members by Conference - Pie */}
+      <Card className="premium-card-hover">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base sm:text-lg font-display">Distribution by Conference</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">Share of members across conferences</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {conferenceStats.length > 0 ? (
+            <ChartContainer config={conferenceChartConfig} className="h-[280px] w-full">
+              <PieChart>
+                <ChartTooltip content={<ChartTooltipContent nameKey="name" />} />
+                <Pie
+                  data={conferenceStats}
+                  dataKey="members"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  label={({ name, members }) => `${name}: ${members}`}
+                  labelLine={false}
+                >
+                  {conferenceStats.map((_, i) => (
+                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ChartContainer>
+          ) : (
+            <p className="text-muted-foreground text-sm py-8 text-center">No conference data</p>
+          )}
+        </CardContent>
+      </Card>
     </DashboardLayout>
   );
 }

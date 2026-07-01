@@ -90,7 +90,7 @@ export default function Auth() {
     try {
       await signUp(phone, password, fullName, branchId, institution);
       await signIn(phone, password);
-      navigate('/dashboard');
+      navigate('/welcome');
     } catch (err: any) {
       toast({ title: 'Usajili umeshindikana', description: err.message, variant: 'destructive' });
     } finally {
