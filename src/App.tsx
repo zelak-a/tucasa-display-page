@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Auth from "./pages/Auth";
+import Welcome from "./pages/Welcome";
 import Dashboard from "./pages/Dashboard";
 import Members from "./pages/Members";
 import Leadership from "./pages/Leadership";
