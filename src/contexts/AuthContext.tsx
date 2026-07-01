@@ -21,6 +21,7 @@ interface AuthContextType {
   userRoles: UserRole[];
   loading: boolean;
   isUnionLeader: boolean;
+  isSuperAdmin: boolean;
   signIn: (phone: string, password: string) => Promise<void>;
   signUp: (phone: string, password: string, fullName: string, branchId: string, institution?: string) => Promise<void>;
   signOut: () => Promise<void>;
