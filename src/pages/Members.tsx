@@ -113,7 +113,7 @@ function StatCard({ title, value, icon: Icon, accent }: { title: string; value: 
 
 export default function Members() {
   const navigate = useNavigate();
-  const { hasPermission, userRoles, user } = useAuth();
+  const { hasPermission, userRoles, user, isSuperAdmin } = useAuth();
   const { toast } = useToast();
   const [conferences, setConferences] = useState<Conference[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
@@ -134,8 +134,8 @@ export default function Members() {
   const canDelete = hasPermission('delete_member');
 
   // ---- SCOPE COMPUTATION ----
-  const isUnion = userRoles.some(r => r.hierarchy_level === 'union');
-  const isPlainMember = userRoles.length === 0;
+  const isUnion = userRoles.some(r => r.hierarchy_level === 'union') || isSuperAdmin;
+  const isPlainMember = userRoles.length === 0 && !isSuperAdmin;
 
   const { conferenceIds, zoneIds, branchIds } = (() => {
     if (isUnion) {
