@@ -39,27 +39,39 @@ interface ConferenceStat {
   zones: number;
 }
 
+interface HierarchyExportRow {
+  Union: string;
+  Conference: string;
+  Zone: string;
+  Branch: string;
+  Members: number;
+  Active: number;
+}
+
 export default function Reports() {
   const navigate = useNavigate();
   const { highestLevel, userRoles, user } = useAuth();
   const [branchStats, setBranchStats] = useState<BranchStat[]>([]);
   const [zoneStats, setZoneStats] = useState<ZoneStat[]>([]);
   const [conferenceStats, setConferenceStats] = useState<ConferenceStat[]>([]);
+  const [hierarchyRows, setHierarchyRows] = useState<HierarchyExportRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      const [membersRes, branchesRes, zonesRes, confsRes] = await Promise.all([
+      const [membersRes, branchesRes, zonesRes, confsRes, unionsRes] = await Promise.all([
         supabase.from('members').select('id, is_active, branch_id, user_id'),
         supabase.from('branches').select('id, name, zone_id'),
         supabase.from('zones').select('id, name, conference_id'),
-        supabase.from('conferences').select('id, name'),
+        supabase.from('conferences').select('id, name, union_id'),
+        supabase.from('unions').select('id, name'),
       ]);
 
       const members = membersRes.data || [];
       const branches = branchesRes.data || [];
       const zones = zonesRes.data || [];
       const conferences = confsRes.data || [];
+      const unions = unionsRes.data || [];
 
       // Compute scope
       const isUnion = userRoles.some(r => r.hierarchy_level === 'union');
@@ -73,7 +85,6 @@ export default function Reports() {
         zoneIds = new Set(zones.map(z => z.id));
         branchIds = new Set(branches.map(b => b.id));
       } else if (isPlainMember) {
-        // Only own branch
         const myMember = members.find(m => (m as any).user_id === user?.id);
         if (myMember) branchIds.add(myMember.branch_id);
       } else {
@@ -118,9 +129,33 @@ export default function Reports() {
         };
       }).sort((a, b) => b.members - a.members);
 
+      // Full hierarchy breakdown for export
+      const unionMap = new Map(unions.map(u => [u.id, u.name]));
+      const confMap = new Map(conferences.map(c => [c.id, c]));
+      const zoneMap = new Map(zones.map(z => [z.id, z]));
+      const hRows: HierarchyExportRow[] = scopedBranches.map(b => {
+        const z: any = zoneMap.get(b.zone_id);
+        const c: any = z ? confMap.get(z.conference_id) : null;
+        const uName = c ? (unionMap.get(c.union_id) || '') : '';
+        const bMembers = scopedMembers.filter(m => m.branch_id === b.id);
+        return {
+          Union: uName,
+          Conference: c?.name || '',
+          Zone: z?.name || '',
+          Branch: b.name,
+          Members: bMembers.length,
+          Active: bMembers.filter(m => m.is_active).length,
+        };
+      }).sort((a, b) =>
+        a.Conference.localeCompare(b.Conference) ||
+        a.Zone.localeCompare(b.Zone) ||
+        a.Branch.localeCompare(b.Branch)
+      );
+
       setBranchStats(bStats);
       setZoneStats(zStats);
       setConferenceStats(cStats);
+      setHierarchyRows(hRows);
       setLoading(false);
     };
     fetchData();
@@ -130,16 +165,8 @@ export default function Reports() {
   const totalActive = branchStats.reduce((s, b) => s + b.active, 0);
   const activeRate = totalMembers > 0 ? Math.round((totalActive / totalMembers) * 100) : 0;
 
-  const branchChartConfig = Object.fromEntries(
-    branchStats.map((b, i) => [b.name, { label: b.name, color: CHART_COLORS[i % CHART_COLORS.length] }])
-  );
-
   const conferenceChartConfig = Object.fromEntries(
     conferenceStats.map((c, i) => [c.name, { label: c.name, color: CHART_COLORS[i % CHART_COLORS.length] }])
-  );
-
-  const zoneChartConfig = Object.fromEntries(
-    zoneStats.map((z, i) => [z.name, { label: z.name, color: CHART_COLORS[i % CHART_COLORS.length] }])
   );
 
   if (loading) {
@@ -168,12 +195,13 @@ export default function Reports() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <ExportMenu
-            rows={branchStats.map(b => ({ Branch: b.name, Members: b.members, Active: b.active }))}
-            filename="branch-report"
-            title="TUCASA Branch Report"
+            rows={hierarchyRows}
+            filename="tucasa-hierarchy-report"
+            title="TUCASA Hierarchy Report (Union → Conference → Zone → Branch)"
           />
         </div>
       </div>
+
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
