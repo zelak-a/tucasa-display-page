@@ -111,13 +111,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        await Promise.all([
+        const [, , superRes] = await Promise.all([
           fetchProfile(session.user.id),
           fetchUserRoles(session.user.id),
+          supabase.rpc('is_super_admin', { _uid: session.user.id }),
         ]);
+        if (mounted) setIsSuperAdmin(Boolean((superRes as any)?.data));
       } else {
         setProfile(null);
         setUserRoles([]);
+        setIsSuperAdmin(false);
       }
       if (mounted) setLoading(false);
     };
