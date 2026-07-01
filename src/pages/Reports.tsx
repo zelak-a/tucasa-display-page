@@ -215,97 +215,68 @@ export default function Reports() {
         </Card>
       </div>
 
-      {/* Members by Branch - Bar Chart */}
+      {/* Members by Conference - Bar Chart */}
       <Card className="premium-card-hover mb-6">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base sm:text-lg font-display">Members by Branch</CardTitle>
-          <CardDescription className="text-xs sm:text-sm">Total and active members per branch</CardDescription>
+          <CardTitle className="text-base sm:text-lg font-display">Members by Conference</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">Total members per conference</CardDescription>
         </CardHeader>
         <CardContent className="px-2 sm:px-6">
-              {branchStats.length > 0 ? (
-            <ChartContainer config={branchChartConfig} className="h-[250px] sm:h-[300px] w-full">
+          {conferenceStats.length > 0 ? (
+            <ChartContainer config={conferenceChartConfig} className="h-[260px] sm:h-[320px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={branchStats} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                <BarChart data={conferenceStats} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
                   <defs>
-                    <linearGradient id="membersGradient" x1="0" x2="0" y1="0" y2="1">
+                    <linearGradient id="confGradient" x1="0" x2="0" y1="0" y2="1">
                       <stop offset="0%" stopColor="hsl(142, 60%, 45%)" stopOpacity={0.98} />
                       <stop offset="100%" stopColor="hsl(142, 60%, 35%)" stopOpacity={0.86} />
                     </linearGradient>
-                    <linearGradient id="activeGradient" x1="0" x2="0" y1="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(210, 80%, 60%)" stopOpacity={0.98} />
-                      <stop offset="100%" stopColor="hsl(210, 80%, 50%)" stopOpacity={0.86} />
-                    </linearGradient>
                   </defs>
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} angle={-30} textAnchor="end" height={60} />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-20} textAnchor="end" height={70} />
                   <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="members" fill="url(#membersGradient)" radius={[8, 8, 0, 0]} animationDuration={900} name="Total" />
-                  <Bar dataKey="active" fill="url(#activeGradient)" radius={[8, 8, 0, 0]} animationDuration={900} name="Active" />
+                  <Bar dataKey="members" fill="url(#confGradient)" radius={[8, 8, 0, 0]} animationDuration={900} name="Members" />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
           ) : (
-            <p className="text-muted-foreground text-sm py-8 text-center">No branch data available</p>
+            <p className="text-muted-foreground text-sm py-8 text-center">No conference data available</p>
           )}
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-        {/* Members by Conference - Pie Chart */}
-        <Card className="premium-card-hover">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base sm:text-lg font-display">Members by Conference</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Distribution across conferences</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {conferenceStats.length > 0 ? (
-              <ChartContainer config={conferenceChartConfig} className="h-[250px] w-full">
-                <PieChart>
-                  <ChartTooltip content={<ChartTooltipContent nameKey="name" />} />
-                  <Pie
-                    data={conferenceStats}
-                    dataKey="members"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    label={({ name, members }) => `${name}: ${members}`}
-                    labelLine={false}
-                  >
-                    {conferenceStats.map((_, i) => (
-                      <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ChartContainer>
-            ) : (
-              <p className="text-muted-foreground text-sm py-8 text-center">No conference data</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Members by Zone - Bar Chart */}
-        <Card className="premium-card-hover">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base sm:text-lg font-display">Members by Zone</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">Member count per zone</CardDescription>
-          </CardHeader>
-          <CardContent className="px-2 sm:px-6">
-            {zoneStats.length > 0 ? (
-              <ChartContainer config={zoneChartConfig} className="h-[250px] w-full">
-                <BarChart data={zoneStats} layout="vertical" margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                  <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-                  <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={80} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="members" fill="hsl(38, 90%, 55%)" radius={[0, 4, 4, 0]} name="Members" />
-                </BarChart>
-              </ChartContainer>
-            ) : (
-              <p className="text-muted-foreground text-sm py-8 text-center">No zone data</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      {/* Members by Conference - Pie */}
+      <Card className="premium-card-hover">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base sm:text-lg font-display">Distribution by Conference</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">Share of members across conferences</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {conferenceStats.length > 0 ? (
+            <ChartContainer config={conferenceChartConfig} className="h-[280px] w-full">
+              <PieChart>
+                <ChartTooltip content={<ChartTooltipContent nameKey="name" />} />
+                <Pie
+                  data={conferenceStats}
+                  dataKey="members"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  label={({ name, members }) => `${name}: ${members}`}
+                  labelLine={false}
+                >
+                  {conferenceStats.map((_, i) => (
+                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ChartContainer>
+          ) : (
+            <p className="text-muted-foreground text-sm py-8 text-center">No conference data</p>
+          )}
+        </CardContent>
+      </Card>
     </DashboardLayout>
   );
 }
