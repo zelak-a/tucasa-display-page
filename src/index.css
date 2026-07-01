@@ -564,6 +564,13 @@
     animation: slideDown 240ms cubic-bezier(0.25, 0.8, 0.25, 1) both;
   }
 
+  @keyframes confettiFall {
+    0%   { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0.85; }
+  }
+  .animate-confetti { animation: confettiFall linear forwards; }
+
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; animation: none !important; }
   }
