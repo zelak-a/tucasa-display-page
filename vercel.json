@@ -1,11 +1,5 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": null,
-  "buildCommand": "bun run build",
-  "installCommand": "bun install",
-  "outputDirectory": ".output/public",
-  "trailingSlash": false,
-  "cleanUrls": true,
+ 
   "rewrites": [
     { "source": "/(.*)", "destination": "/" }
   ],
