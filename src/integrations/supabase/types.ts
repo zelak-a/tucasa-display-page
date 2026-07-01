@@ -283,6 +283,21 @@ export type Database = {
         }
         Relationships: []
       }
+      super_admin_phones: {
+        Row: {
+          created_at: string
+          phone: string
+        }
+        Insert: {
+          created_at?: string
+          phone: string
+        }
+        Update: {
+          created_at?: string
+          phone?: string
+        }
+        Relationships: []
+      }
       unions: {
         Row: {
           created_at: string
@@ -382,7 +397,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_super_admin: { Args: { _uid: string }; Returns: boolean }
     }
     Enums: {
       hierarchy_level: "union" | "conference" | "zone" | "branch"
