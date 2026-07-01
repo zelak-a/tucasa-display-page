@@ -21,6 +21,7 @@ interface AuthContextType {
   userRoles: UserRole[];
   loading: boolean;
   isUnionLeader: boolean;
+  isSuperAdmin: boolean;
   signIn: (phone: string, password: string) => Promise<void>;
   signUp: (phone: string, password: string, fullName: string, branchId: string, institution?: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -36,6 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
@@ -109,13 +111,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        await Promise.all([
+        const [, , superRes] = await Promise.all([
           fetchProfile(session.user.id),
           fetchUserRoles(session.user.id),
+          supabase.rpc('is_super_admin', { _uid: session.user.id }),
         ]);
+        if (mounted) setIsSuperAdmin(Boolean((superRes as any)?.data));
       } else {
         setProfile(null);
         setUserRoles([]);
+        setIsSuperAdmin(false);
       }
       if (mounted) setLoading(false);
     };
@@ -135,9 +140,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const isUnionLeader = userRoles.some(r => r.hierarchy_level === 'union');
+  const isUnionLeader = userRoles.some(r => r.hierarchy_level === 'union') || isSuperAdmin;
 
   const hasPermission = (permission: string) => {
+    if (isSuperAdmin) return true;
     return userRoles.some(r => r.permissions.includes(permission));
   };
 
@@ -181,7 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <AuthContext.Provider value={{
       user, session, profile, userRoles, loading,
-      isUnionLeader, signIn, signUp, signOut, hasPermission, highestLevel, refreshRoles,
+      isUnionLeader, isSuperAdmin, signIn, signUp, signOut, hasPermission, highestLevel, refreshRoles,
     }}>
       {children}
     </AuthContext.Provider>
