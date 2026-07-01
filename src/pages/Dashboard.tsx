@@ -42,7 +42,7 @@ const ALL_MODULES: Array<{ to: string; title: string; desc: string; Icon: Lucide
 ];
 
 export default function Dashboard() {
-  const { user, profile, userRoles, highestLevel, isUnionLeader, signOut } = useAuth();
+  const { user, profile, userRoles, highestLevel, isUnionLeader, isSuperAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [myMembership, setMyMembership] = useState<MyMembership | null>(null);
@@ -54,7 +54,7 @@ export default function Dashboard() {
   const [savingProfile, setSavingProfile] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
-  const isPlainMember = userRoles.length === 0;
+  const isPlainMember = userRoles.length === 0 && !isSuperAdmin;
   const visibleModules = ALL_MODULES.filter(m => !m.unionOnly || isUnionLeader);
 
   useEffect(() => {
