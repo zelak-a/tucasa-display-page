@@ -186,9 +186,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       if (error) throw error;
     } finally {
-      if (!supabase.auth.session) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 
@@ -197,10 +195,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await supabase.auth.signOut();
     } finally {
-      // Keep loading true until auth state changes and hydrate() resets it.
-      if (supabase.auth.session === null) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 
