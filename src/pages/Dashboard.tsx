@@ -56,7 +56,8 @@ export default function Dashboard() {
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const isPlainMember = userRoles.length === 0 && !isSuperAdmin;
-  const visibleModules = ALL_MODULES.filter(m => !m.unionOnly || isUnionLeader);
+  const hasAnyLeadership = userRoles.length > 0 || isSuperAdmin;
+  const visibleModules = ALL_MODULES.filter(m => !m.unionOnly || hasAnyLeadership);
 
   useEffect(() => {
     if (user) setAvatar(getStoredAvatar(user.id));
