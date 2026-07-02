@@ -49,7 +49,7 @@ function HierarchyCard({ item, fields, canDelete, onDelete }: {
 
 export default function Hierarchy() {
   const navigate = useNavigate();
-  const { isUnionLeader } = useAuth();
+  const { isUnionLeader, userRoles, profile } = useAuth();
   const { toast } = useToast();
 
   const [unions, setUnions] = useState<any[]>([]);
@@ -79,6 +79,31 @@ export default function Hierarchy() {
 
   useEffect(() => { fetchAll(); }, []);
 
+  const scope = useMemo(
+    () => computeScope(userRoles as any, conferences, zones, branches, profile?.branch_id || null),
+    [userRoles, conferences, zones, branches, profile?.branch_id],
+  );
+
+  // Data filtered by user's scope
+  const visibleConferences = useMemo(
+    () => isUnionLeader ? conferences : conferences.filter(c => scope.conferenceIds.has(c.id)),
+    [isUnionLeader, conferences, scope],
+  );
+  const visibleZones = useMemo(
+    () => isUnionLeader ? zones : zones.filter(z => scope.zoneIds.has(z.id)),
+    [isUnionLeader, zones, scope],
+  );
+  const visibleBranches = useMemo(
+    () => isUnionLeader ? branches : branches.filter(b => scope.branchIds.has(b.id)),
+    [isUnionLeader, branches, scope],
+  );
+
+  // Permission to add at each level (based on top role)
+  const canAddUnion = isUnionLeader;
+  const canAddConference = isUnionLeader;
+  const canAddZone = isUnionLeader || scope.topLevel === 'conference';
+  const canAddBranch = isUnionLeader || scope.topLevel === 'conference' || scope.topLevel === 'zone';
+
   const openOverlayConferences = () => setOverlay({ level: 'conferences' });
   const openOverlayZones = (conference: any) => setOverlay({ level: 'zones', conference });
   const openOverlayBranches = (zone: any) => {
@@ -97,7 +122,11 @@ export default function Hierarchy() {
 
   const openAdd = (type: typeof dialogType) => {
     setDialogType(type);
-    setForm({ name: '', description: '', institution: '', parent_id: '' });
+    // Pre-select parent when user only has one option
+    let parent_id = '';
+    if (type === 'zone' && visibleConferences.length === 1) parent_id = visibleConferences[0].id;
+    if (type === 'branch' && visibleZones.length === 1) parent_id = visibleZones[0].id;
+    setForm({ name: '', description: '', institution: '', parent_id });
     setDialogOpen(true);
   };
 
@@ -137,8 +166,8 @@ export default function Hierarchy() {
   const parentOptions = () => {
     switch (dialogType) {
       case 'conference': return unions;
-      case 'zone': return conferences;
-      case 'branch': return zones;
+      case 'zone': return visibleConferences;
+      case 'branch': return visibleZones;
       default: return [];
     }
   };
@@ -155,6 +184,16 @@ export default function Hierarchy() {
   const unionMap = new Map(unions.map(u => [u.id, u.name]));
   const confMap = new Map(conferences.map(c => [c.id, c.name]));
   const zoneMap = new Map(zones.map(z => [z.id, z.name]));
+
+  // Which tabs to expose based on role level
+  const showUnionsTab = isUnionLeader;
+  const showConferencesTab = isUnionLeader || scope.conferenceIds.size > 0;
+  const showZonesTab = isUnionLeader || scope.zoneIds.size > 0;
+  const showBranchesTab = true; // everyone with any level can see their branch(es)
+  const defaultTab = showUnionsTab ? 'unions'
+    : showConferencesTab ? 'conferences'
+    : showZonesTab ? 'zones'
+    : 'branches';
 
   return (
     <DashboardLayout>
