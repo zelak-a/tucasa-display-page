@@ -413,7 +413,7 @@ export default function Hierarchy() {
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2">
                       {overlay.level === 'conferences' ? (
-                        conferences.map(c => (
+                        visibleConferences.map(c => (
                           <button key={c.id} onClick={() => openOverlayZones(c)} className="text-left group transition-transform duration-300 hover:-translate-y-0.5 hover:scale-[1.01]">
                             <Card className="premium-card-hover bg-white/90 border border-slate-200/80 hover:border-slate-300 transition-colors">
                               <CardContent className="p-4 flex items-center gap-3">
@@ -428,7 +428,7 @@ export default function Hierarchy() {
                           </button>
                         ))
                       ) : overlay.level === 'zones' ? (
-                        zones.filter(z => z.conference_id === overlay.conference.id).map(z => (
+                        visibleZones.filter(z => z.conference_id === overlay.conference.id).map(z => (
                           <button key={z.id} onClick={() => openOverlayBranches(z)} className="text-left group transition-transform duration-300 hover:-translate-y-0.5 hover:scale-[1.01]">
                             <Card className="premium-card-hover bg-white/90 border border-slate-200/80 hover:border-slate-300 transition-colors">
                               <CardContent className="p-4 flex items-center gap-3">
@@ -443,7 +443,7 @@ export default function Hierarchy() {
                           </button>
                         ))
                       ) : (
-                        branches.filter(b => b.zone_id === overlay.zone.id).map(b => (
+                        visibleBranches.filter(b => b.zone_id === overlay.zone.id).map(b => (
                           <div key={b.id} className="text-left group transition-transform duration-300 hover:-translate-y-0.5 hover:scale-[1.01]">
                             <Card className="premium-card-hover bg-white/90 border border-slate-200/80 hover:border-slate-300 transition-colors">
                               <CardContent className="p-4 flex items-center gap-3">
