@@ -254,38 +254,39 @@ export default function Hierarchy() {
         </DialogContent>
       </Dialog>
 
-      <Tabs defaultValue="unions">
+      <Tabs defaultValue={defaultTab}>
         <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 mb-4">
           <TabsList className="w-max sm:w-auto">
-            <TabsTrigger value="unions" className="gap-1 text-xs sm:text-sm"><Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> <span className="hidden sm:inline">Unions</span><span className="sm:hidden">Union</span></TabsTrigger>
-            <TabsTrigger value="conferences" className="gap-1 text-xs sm:text-sm"><Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> <span className="hidden sm:inline">Conferences</span><span className="sm:hidden">Conf</span></TabsTrigger>
-            <TabsTrigger value="zones" className="gap-1 text-xs sm:text-sm"><MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Zones</TabsTrigger>
-            <TabsTrigger value="branches" className="gap-1 text-xs sm:text-sm"><GitBranch className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> <span className="hidden sm:inline">Branches</span><span className="sm:hidden">Branch</span></TabsTrigger>
+            {showUnionsTab && <TabsTrigger value="unions" className="gap-1 text-xs sm:text-sm"><Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> <span className="hidden sm:inline">Unions</span><span className="sm:hidden">Union</span></TabsTrigger>}
+            {showConferencesTab && <TabsTrigger value="conferences" className="gap-1 text-xs sm:text-sm"><Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> <span className="hidden sm:inline">Conferences</span><span className="sm:hidden">Conf</span></TabsTrigger>}
+            {showZonesTab && <TabsTrigger value="zones" className="gap-1 text-xs sm:text-sm"><MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Zones</TabsTrigger>}
+            {showBranchesTab && <TabsTrigger value="branches" className="gap-1 text-xs sm:text-sm"><GitBranch className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> <span className="hidden sm:inline">Branches</span><span className="sm:hidden">Branch</span></TabsTrigger>}
           </TabsList>
         </div>
 
+        {showUnionsTab && (
         <TabsContent value="unions">
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm text-muted-foreground">{unions.length} union{unions.length !== 1 ? 's' : ''}</p>
-            {isUnionLeader && <Button size="sm" onClick={() => openAdd('union')}><Plus className="h-4 w-4 mr-1" /> Add</Button>}
+            {canAddUnion && <Button size="sm" onClick={() => openAdd('union')}><Plus className="h-4 w-4 mr-1" /> Add</Button>}
           </div>
           {/* Mobile */}
           <div className="md:hidden">
             {unions.map(u => (
-              <HierarchyCard key={u.id} item={u} fields={[{ label: 'Description', value: u.description || '—' }]} canDelete={isUnionLeader} onDelete={() => handleDelete('unions', u.id)} />
+              <HierarchyCard key={u.id} item={u} fields={[{ label: 'Description', value: u.description || '—' }]} canDelete={canAddUnion} onDelete={() => handleDelete('unions', u.id)} />
             ))}
           </div>
           {/* Desktop */}
           <Card className="hidden md:block">
             <CardContent className="p-0">
               <Table>
-                <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Description</TableHead>{isUnionLeader && <TableHead className="text-right">Actions</TableHead>}</TableRow></TableHeader>
+                <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Description</TableHead>{canAddUnion && <TableHead className="text-right">Actions</TableHead>}</TableRow></TableHeader>
                 <TableBody>
                   {unions.map(u => (
                     <TableRow key={u.id}>
                       <TableCell className="font-medium">{u.name}</TableCell>
                       <TableCell>{u.description || '—'}</TableCell>
-                      {isUnionLeader && <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => handleDelete('unions', u.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>}
+                      {canAddUnion && <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => handleDelete('unions', u.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -293,28 +294,30 @@ export default function Hierarchy() {
             </CardContent>
           </Card>
         </TabsContent>
+        )}
 
+        {showConferencesTab && (
         <TabsContent value="conferences">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-muted-foreground">{conferences.length} conference{conferences.length !== 1 ? 's' : ''}</p>
-            {isUnionLeader && <Button size="sm" onClick={() => openAdd('conference')}><Plus className="h-4 w-4 mr-1" /> Add</Button>}
+            <p className="text-sm text-muted-foreground">{visibleConferences.length} conference{visibleConferences.length !== 1 ? 's' : ''}</p>
+            {canAddConference && <Button size="sm" onClick={() => openAdd('conference')}><Plus className="h-4 w-4 mr-1" /> Add</Button>}
           </div>
           <div className="md:hidden">
-            {conferences.map(c => (
-              <HierarchyCard key={c.id} item={c} fields={[{ label: 'Union', value: unionMap.get(c.union_id) || '—' }, { label: 'Description', value: c.description || '—' }]} canDelete={isUnionLeader} onDelete={() => handleDelete('conferences', c.id)} />
+            {visibleConferences.map(c => (
+              <HierarchyCard key={c.id} item={c} fields={[{ label: 'Union', value: unionMap.get(c.union_id) || '—' }, { label: 'Description', value: c.description || '—' }]} canDelete={canAddConference} onDelete={() => handleDelete('conferences', c.id)} />
             ))}
           </div>
           <Card className="hidden md:block">
             <CardContent className="p-0">
               <Table>
-                <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Union</TableHead><TableHead>Description</TableHead>{isUnionLeader && <TableHead className="text-right">Actions</TableHead>}</TableRow></TableHeader>
+                <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Union</TableHead><TableHead>Description</TableHead>{canAddConference && <TableHead className="text-right">Actions</TableHead>}</TableRow></TableHeader>
                 <TableBody>
-                  {conferences.map(c => (
+                  {visibleConferences.map(c => (
                     <TableRow key={c.id}>
                       <TableCell className="font-medium">{c.name}</TableCell>
                       <TableCell>{unionMap.get(c.union_id) || '—'}</TableCell>
                       <TableCell>{c.description || '—'}</TableCell>
-                      {isUnionLeader && <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => handleDelete('conferences', c.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>}
+                      {canAddConference && <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => handleDelete('conferences', c.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -322,28 +325,30 @@ export default function Hierarchy() {
             </CardContent>
           </Card>
         </TabsContent>
+        )}
 
+        {showZonesTab && (
         <TabsContent value="zones">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-muted-foreground">{zones.length} zone{zones.length !== 1 ? 's' : ''}</p>
-            <Button size="sm" onClick={() => openAdd('zone')}><Plus className="h-4 w-4 mr-1" /> Add</Button>
+            <p className="text-sm text-muted-foreground">{visibleZones.length} zone{visibleZones.length !== 1 ? 's' : ''}</p>
+            {canAddZone && <Button size="sm" onClick={() => openAdd('zone')}><Plus className="h-4 w-4 mr-1" /> Add</Button>}
           </div>
           <div className="md:hidden">
-            {zones.map(z => (
-              <HierarchyCard key={z.id} item={z} fields={[{ label: 'Conference', value: confMap.get(z.conference_id) || '—' }, { label: 'Description', value: z.description || '—' }]} canDelete={true} onDelete={() => handleDelete('zones', z.id)} />
+            {visibleZones.map(z => (
+              <HierarchyCard key={z.id} item={z} fields={[{ label: 'Conference', value: confMap.get(z.conference_id) || '—' }, { label: 'Description', value: z.description || '—' }]} canDelete={canAddZone} onDelete={() => handleDelete('zones', z.id)} />
             ))}
           </div>
           <Card className="hidden md:block">
             <CardContent className="p-0">
               <Table>
-                <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Conference</TableHead><TableHead>Description</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+                <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Conference</TableHead><TableHead>Description</TableHead>{canAddZone && <TableHead className="text-right">Actions</TableHead>}</TableRow></TableHeader>
                 <TableBody>
-                  {zones.map(z => (
+                  {visibleZones.map(z => (
                     <TableRow key={z.id}>
                       <TableCell className="font-medium">{z.name}</TableCell>
                       <TableCell>{confMap.get(z.conference_id) || '—'}</TableCell>
                       <TableCell>{z.description || '—'}</TableCell>
-                      <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => handleDelete('zones', z.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
+                      {canAddZone && <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => handleDelete('zones', z.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -351,28 +356,30 @@ export default function Hierarchy() {
             </CardContent>
           </Card>
         </TabsContent>
+        )}
 
+        {showBranchesTab && (
         <TabsContent value="branches">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-muted-foreground">{branches.length} branch{branches.length !== 1 ? 'es' : ''}</p>
-            <Button size="sm" onClick={() => openAdd('branch')}><Plus className="h-4 w-4 mr-1" /> Add</Button>
+            <p className="text-sm text-muted-foreground">{visibleBranches.length} branch{visibleBranches.length !== 1 ? 'es' : ''}</p>
+            {canAddBranch && <Button size="sm" onClick={() => openAdd('branch')}><Plus className="h-4 w-4 mr-1" /> Add</Button>}
           </div>
           <div className="md:hidden">
-            {branches.map(b => (
-              <HierarchyCard key={b.id} item={b} fields={[{ label: 'Zone', value: zoneMap.get(b.zone_id) || '—' }, { label: 'Institution', value: b.institution || '—' }]} canDelete={true} onDelete={() => handleDelete('branches', b.id)} />
+            {visibleBranches.map(b => (
+              <HierarchyCard key={b.id} item={b} fields={[{ label: 'Zone', value: zoneMap.get(b.zone_id) || '—' }, { label: 'Institution', value: b.institution || '—' }]} canDelete={canAddBranch} onDelete={() => handleDelete('branches', b.id)} />
             ))}
           </div>
           <Card className="hidden md:block">
             <CardContent className="p-0">
               <Table>
-                <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Zone</TableHead><TableHead>Institution</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+                <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Zone</TableHead><TableHead>Institution</TableHead>{canAddBranch && <TableHead className="text-right">Actions</TableHead>}</TableRow></TableHeader>
                 <TableBody>
-                  {branches.map(b => (
+                  {visibleBranches.map(b => (
                     <TableRow key={b.id}>
                       <TableCell className="font-medium">{b.name}</TableCell>
                       <TableCell>{zoneMap.get(b.zone_id) || '—'}</TableCell>
                       <TableCell>{b.institution || '—'}</TableCell>
-                      <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => handleDelete('branches', b.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
+                      {canAddBranch && <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => handleDelete('branches', b.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -380,6 +387,7 @@ export default function Hierarchy() {
             </CardContent>
           </Card>
         </TabsContent>
+        )}
       </Tabs>
       {overlay && (
         <>
