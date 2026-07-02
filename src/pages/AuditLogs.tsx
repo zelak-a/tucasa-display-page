@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ExportMenu } from '@/components/ExportMenu';
 import { ShieldAlert, Search, ArrowLeft } from 'lucide-react';
+import { SEO } from '@/components/SEO';
 
 interface AuditRow {
   id: string;
